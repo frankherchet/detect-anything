@@ -4,15 +4,82 @@
   --ink: #17211f;
   --muted: #66736e;
   --panel: #ffffff;
+  --panel-soft: #fbfcfa;
   --line: #dbe2db;
   --teal: #0f766e;
   --teal-dark: #115e59;
   --amber: #b45309;
   --rose: #be123c;
+  --frame-a: rgb(10 15 14 / 0.78);
+  --frame-b: rgb(23 33 31 / 0.95);
+  --button-soft: #e9f2ef;
+  --stage-glow-a: rgb(15 118 110 / 0.14);
+  --stage-glow-b: rgb(180 83 9 / 0.13);
   --shadow: 0 20px 70px rgb(15 23 42 / 0.12);
+  --label-shadow: 0 10px 24px rgb(0 0 0 / 0.22);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+}
+
+body[data-theme="midnight"] {
+  color-scheme: dark;
+  --bg: #111827;
+  --ink: #edf5f2;
+  --muted: #a8b7b3;
+  --panel: #17211f;
+  --panel-soft: #101816;
+  --line: #344541;
+  --teal: #5eead4;
+  --teal-dark: #2dd4bf;
+  --amber: #fbbf24;
+  --rose: #fb7185;
+  --frame-a: rgb(5 8 12 / 0.86);
+  --frame-b: rgb(18 26 31 / 0.98);
+  --button-soft: #203632;
+  --stage-glow-a: rgb(45 212 191 / 0.14);
+  --stage-glow-b: rgb(251 191 36 / 0.12);
+  --shadow: 0 24px 90px rgb(0 0 0 / 0.32);
+}
+
+body[data-theme="cyberpunk"] {
+  color-scheme: dark;
+  --bg: #080713;
+  --ink: #f7f2ff;
+  --muted: #c6bad8;
+  --panel: #161225;
+  --panel-soft: #100c1d;
+  --line: #3d2b5d;
+  --teal: #00e5ff;
+  --teal-dark: #f000ff;
+  --amber: #ffe66d;
+  --rose: #ff3d81;
+  --frame-a: rgb(11 7 25 / 0.88);
+  --frame-b: rgb(30 16 50 / 0.98);
+  --button-soft: #24163f;
+  --stage-glow-a: rgb(0 229 255 / 0.18);
+  --stage-glow-b: rgb(255 61 129 / 0.16);
+  --shadow: 0 24px 90px rgb(0 0 0 / 0.4);
+}
+
+body[data-theme="paper"] {
+  color-scheme: light;
+  --bg: #f8f3e8;
+  --ink: #211d17;
+  --muted: #756b5c;
+  --panel: #fffdf7;
+  --panel-soft: #fbf6e9;
+  --line: #ded2bd;
+  --teal: #2563eb;
+  --teal-dark: #1d4ed8;
+  --amber: #a16207;
+  --rose: #b91c1c;
+  --frame-a: rgb(31 27 21 / 0.78);
+  --frame-b: rgb(59 49 37 / 0.94);
+  --button-soft: #e8edf7;
+  --stage-glow-a: rgb(37 99 235 / 0.13);
+  --stage-glow-b: rgb(161 98 7 / 0.12);
+  --shadow: 0 18px 58px rgb(92 72 42 / 0.16);
 }
 
 * {
@@ -27,14 +94,15 @@ body {
 body {
   margin: 0;
   background:
-    linear-gradient(180deg, rgb(247 248 243 / 0.92), rgb(238 241 233 / 0.96)),
-    radial-gradient(circle at 10% 10%, rgb(15 118 110 / 0.14), transparent 28%),
-    radial-gradient(circle at 92% 84%, rgb(180 83 9 / 0.13), transparent 30%);
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 96%, white), var(--bg)),
+    radial-gradient(circle at 10% 10%, var(--stage-glow-a), transparent 28%),
+    radial-gradient(circle at 92% 84%, var(--stage-glow-b), transparent 30%);
   color: var(--ink);
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -61,7 +129,7 @@ input {
   border: 1px solid rgb(23 33 31 / 0.12);
   border-radius: 8px;
   background:
-    linear-gradient(135deg, rgb(10 15 14 / 0.78), rgb(23 33 31 / 0.95)),
+    linear-gradient(135deg, var(--frame-a), var(--frame-b)),
     repeating-linear-gradient(90deg, rgb(255 255 255 / 0.06) 0 1px, transparent 1px 56px);
   box-shadow: var(--shadow);
 }
@@ -78,8 +146,7 @@ video {
   object-fit: cover;
 }
 
-video.mirrored,
-canvas.mirrored {
+video.mirrored {
   transform: scaleX(-1);
 }
 
@@ -144,6 +211,7 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgb(255 255 255 / 0.92);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
   box-shadow: var(--shadow);
 }
 
@@ -175,6 +243,27 @@ h2 {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
+}
+
+select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 42px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 20px) 50% / 7px 7px no-repeat,
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 15px) 50% / 7px 7px no-repeat,
+    var(--panel-soft);
+  color: var(--ink);
+  appearance: none;
+}
+
+select:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--teal) 42%, transparent);
+  outline-offset: 2px;
 }
 
 button {
@@ -212,7 +301,7 @@ button:disabled {
 }
 
 .secondary-button {
-  background: #e9f2ef;
+  background: var(--button-soft);
   color: var(--teal-dark);
 }
 
@@ -226,7 +315,7 @@ button:disabled {
 .detections {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fbfcfa;
+  background: var(--panel-soft);
 }
 
 .metrics div {
@@ -254,6 +343,11 @@ button:disabled {
   gap: 12px;
   color: var(--ink);
   font-weight: 700;
+}
+
+.control-row.stacked {
+  display: grid;
+  gap: 8px;
 }
 
 output {
@@ -321,6 +415,7 @@ li strong {
 @media (max-width: 980px) {
   .app-shell {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .video-frame {
@@ -334,16 +429,56 @@ li strong {
   }
 }
 
-@media (max-width: 540px) {
-  .app-shell {
-    padding: 10px;
+@media (max-width: 700px) {
+  body {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--bg) 96%, white), var(--bg)),
+      radial-gradient(circle at 50% 0%, var(--stage-glow-a), transparent 42%);
   }
 
-  .control-panel {
-    padding: 18px;
+  .app-shell {
+    min-height: 100dvh;
+    padding: 8px;
+  }
+
+  .stage {
+    align-items: start;
+  }
+
+  .video-frame {
+    max-height: 56dvh;
+    aspect-ratio: 3 / 4;
+    border-radius: 8px;
   }
 
   .metrics {
     grid-template-columns: 1fr;
+  }
+
+  .control-panel {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 16vw, 4.2rem);
+  }
+
+  h2 {
+    font-size: 1.55rem;
+  }
+
+  button,
+  select {
+    min-height: 48px;
+  }
+
+  .toggle-row label,
+  .control-row {
+    font-size: 1rem;
+  }
+
+  li {
+    font-size: 1rem;
   }
 }

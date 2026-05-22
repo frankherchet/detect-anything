@@ -1,4 +1,4 @@
-const CACHE_NAME = "detect-anything-v1";
+const CACHE_NAME = "detect-anything-v2";
 const LOCAL_ASSETS = [
   "./",
   "./index.html",
@@ -61,8 +61,12 @@ self.addEventListener("fetch", (event) => {
       }
 
       return fetch(request).then((response) => {
+        if (!response.ok) {
+          return response;
+        }
+
         const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => {});
         return response;
       });
     }),
