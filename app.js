@@ -82,6 +82,7 @@ const resultMetricLabel = document.querySelector("#resultMetricLabel");
 const fpsValue = document.querySelector("#fpsValue");
 const modelSelect = document.querySelector("#modelSelect");
 const themeSelect = document.querySelector("#themeSelect");
+const cameraSelect = document.querySelector("#cameraSelect");
 const scoreSlider = document.querySelector("#scoreSlider");
 const scoreOutput = document.querySelector("#scoreOutput");
 const maxObjects = document.querySelector("#maxObjects");
@@ -137,6 +138,7 @@ function getSettings() {
     maxObjects: "8",
     mirror: true,
     labels: true,
+    videoDeviceId: "",
     ...readJson(SETTINGS_KEY, {}),
   };
 }
@@ -149,6 +151,7 @@ function saveSettings() {
     maxObjects: maxObjects.value,
     mirror: mirrorToggle.checked,
     labels: labelsToggle.checked,
+    videoDeviceId: cameraSelect.value,
   });
 }
 
@@ -202,6 +205,48 @@ function clearResults() {
   objectCount.textContent = "0";
   fpsValue.textContent = "0";
   detectionList.replaceChildren();
+}
+
+function labelForDevice(device, index) {
+  if (device.label) {
+    return device.label;
+  }
+
+  return `Kamera ${index + 1}`;
+}
+
+async function updateCameraList(preferredDeviceId = cameraSelect.value) {
+  if (!navigator.mediaDevices?.enumerateDevices) {
+    cameraSelect.disabled = true;
+    return;
+  }
+
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoInputs = devices.filter((device) => device.kind === "videoinput");
+    const currentTrack = stream?.getVideoTracks()[0];
+    const activeDeviceId = currentTrack?.getSettings().deviceId;
+    const selectedDeviceId = preferredDeviceId || activeDeviceId || "";
+    const options = [
+      new Option("Automatisch", ""),
+      ...videoInputs.map((device, index) => {
+        const option = new Option(labelForDevice(device, index), device.deviceId);
+        if (device.deviceId === activeDeviceId) {
+          option.textContent = `${option.textContent} (aktiv)`;
+        }
+        return option;
+      }),
+    ];
+
+    cameraSelect.replaceChildren(...options);
+    cameraSelect.value = videoInputs.some((device) => device.deviceId === selectedDeviceId)
+      ? selectedDeviceId
+      : "";
+    cameraSelect.disabled = videoInputs.length === 0;
+  } catch (error) {
+    console.warn("Camera enumeration failed", error);
+    cameraSelect.disabled = true;
+  }
 }
 
 async function registerServiceWorker() {
@@ -516,14 +561,24 @@ async function startCamera() {
   setBusy(cameraButton, true, "Starte...");
   setStatus("Fordere Kamerazugriff an.");
 
+  const videoDeviceId = cameraSelect.value;
+  const videoConstraints = videoDeviceId
+    ? {
+        deviceId: { exact: videoDeviceId },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      }
+    : {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      };
+
   stream = await navigator.mediaDevices.getUserMedia({
     audio: false,
-    video: {
-      facingMode: "environment",
-      width: { ideal: 1280 },
-      height: { ideal: 720 },
-    },
+    video: videoConstraints,
   });
+  await updateCameraList(videoDeviceId);
 
   camera.srcObject = stream;
   await Promise.race([
@@ -639,6 +694,7 @@ function applySettings() {
   maxObjects.value = settings.maxObjects;
   mirrorToggle.checked = Boolean(settings.mirror);
   labelsToggle.checked = Boolean(settings.labels);
+  cameraSelect.value = settings.videoDeviceId;
 
   scoreOutput.value = `${scoreSlider.value}%`;
   maxObjectsOutput.value = maxObjects.value;
@@ -689,6 +745,24 @@ themeSelect.addEventListener("change", () => {
   saveSettings();
 });
 
+cameraSelect.addEventListener("change", async () => {
+  saveSettings();
+
+  if (!running) {
+    return;
+  }
+
+  try {
+    stopCamera();
+    setStatus("Wechsle Videoquelle.");
+    await startCamera();
+  } catch (error) {
+    console.error(error);
+    cameraButton.querySelector("span:last-child").textContent = "Kamera starten";
+    setStatus(error.message || "Videoquelle konnte nicht gewechselt werden.");
+  }
+});
+
 scoreSlider.addEventListener("input", () => {
   scoreOutput.value = `${scoreSlider.value}%`;
   saveSettings();
@@ -708,5 +782,12 @@ labelsToggle.addEventListener("change", saveSettings);
 
 window.addEventListener("resize", resizeOverlay);
 
+if (navigator.mediaDevices?.addEventListener) {
+  navigator.mediaDevices.addEventListener("devicechange", () => {
+    updateCameraList().then(saveSettings);
+  });
+}
+
 registerServiceWorker();
 applySettings();
+updateCameraList(getSettings().videoDeviceId);

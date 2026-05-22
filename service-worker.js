@@ -1,4 +1,4 @@
-const CACHE_NAME = "detect-anything-v2";
+const CACHE_NAME = "detect-anything-v3";
 const LOCAL_ASSETS = [
   "./",
   "./index.html",
